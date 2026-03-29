@@ -35,12 +35,14 @@
 <div class="nav">
     <a href="/">Home</a>
     <a href="/shared-itinerary">Share Trips</a>
+    <a th:href="@{'/shared-itinerary/' + ${sharedItinerary.shareToken} + '/flow'}">Itinerary Summary</a>
     <a th:if="${authenticated}" th:href="@{'/trips/' + ${trip.id}}">Travel Plan</a>
     <a th:unless="${authenticated}" href="/login">Login</a>
 </div>
 
 <div class="section summary">
     <h2 th:text="${trip.tripName}">Trip Name</h2>
+    <p>You are viewing this itinerary as a guest. No login is required for this shared link.</p>
     <p>Destination: <span th:text="${trip.destination}">Destination</span></p>
     <p>Dates: <span th:text="${trip.startDate}"></span> to <span th:text="${trip.endDate}"></span></p>
     <p>Access: <span th:text="${sharedItinerary.accessLevel}">VIEW</span></p>

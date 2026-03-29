@@ -131,6 +131,8 @@
     const countrySelect = document.getElementById("destinationCountry");
     const citySelect = document.getElementById("destinationCity");
     const destinationInput = document.getElementById("destination");
+    const startDateInput = document.getElementById("startDate");
+    const endDateInput = document.getElementById("endDate");
 
     const cityOptions = {
         "Japan": ["Tokyo", "Osaka"],
@@ -165,6 +167,21 @@
     });
 
     citySelect.addEventListener("change", updateDestination);
+
+    function syncTripDateRange() {
+        if (!startDateInput.value) {
+            endDateInput.removeAttribute("min");
+            return;
+        }
+
+        endDateInput.min = startDateInput.value;
+        if (!endDateInput.value || endDateInput.value < startDateInput.value) {
+            endDateInput.value = startDateInput.value;
+        }
+    }
+
+    startDateInput.addEventListener("change", syncTripDateRange);
+    syncTripDateRange();
 </script>
 </body>
 </html>

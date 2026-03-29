@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Itinerary Summary</title>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 24px;
+            background: #f7f7f7;
+            color: #222;
+        }
+        .nav, .section, .flow-item {
+            background: #fff;
+            border: 1px solid #dcdcdc;
+            border-radius: 8px;
+        }
+        .nav, .section {
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        .nav a {
+            margin-right: 12px;
+        }
+        .flow-list {
+            display: grid;
+            gap: 12px;
+        }
+        .flow-item {
+            padding: 14px 16px;
+            border-left: 6px solid #3b82f6;
+        }
+        .flow-meta {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 6px;
+        }
+        .flow-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        .subsection {
+            border-top: 1px solid #ececec;
+            padding-top: 12px;
+            margin-top: 12px;
+        }
+        .subsection:first-of-type {
+            border-top: none;
+            padding-top: 0;
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+<h1 th:text="${trip.tripName + ' Itinerary Summary'}">Itinerary Summary</h1>
+
+<div class="nav">
+    <a href="/">Home</a>
+    <a href="/trips">Travel Plans</a>
+    <a th:href="@{'/trips/' + ${trip.id}}">Trip Details</a>
+    <a href="/profile">Profile</a>
+</div>
+
+<div class="section">
+    <p>Destination: <strong th:text="${trip.destination}">Destination</strong></p>
+    <p>Dates: <strong><span th:text="${trip.startDate}">Start</span> to <span th:text="${trip.endDate}">End</span></strong></p>
+    <p>This page maps out the trip in order so you can quickly view the full itinerary from departure to return.</p>
+</div>
+
+<div class="section">
+    <h2>Itinerary Summary</h2>
+
+    <div th:if="${selectedFlightBooking == null and selectedHotelBooking == null and !hasActivities}">
+        <p>No itinerary items yet. Add a flight, accommodation, or activities to build the trip summary.</p>
+    </div>
+
+    <div th:if="${selectedFlightBooking != null or selectedHotelBooking != null or hasActivities}">
+        <div class="subsection" th:if="${selectedFlightBooking != null}">
+            <h3>Flight</h3>
+            <div class="flow-item">
+                <div class="flow-title" th:text="${selectedFlightBooking.airline + ' ' + selectedFlightBooking.flightNumber}">Flight</div>
+                <div class="flow-meta">Outbound</div>
+                <div th:text="${selectedFlightBooking.origin + ' to ' + selectedFlightBooking.destination}">Route</div>
+                <div th:text="${#temporals.format(selectedFlightBooking.departureDate, 'yyyy-MM-dd HH:mm') + ' to ' + #temporals.format(selectedFlightBooking.arrivalDate, 'yyyy-MM-dd HH:mm')}">Outbound times</div>
+                <div class="flow-meta" style="margin-top:8px;">Return</div>
+                <div th:text="${selectedFlightBooking.destination + ' to ' + selectedFlightBooking.origin}">Return route</div>
+                <div th:text="${#temporals.format(selectedFlightBooking.returnDepartureDate, 'yyyy-MM-dd HH:mm') + ' to ' + #temporals.format(selectedFlightBooking.returnArrivalDate, 'yyyy-MM-dd HH:mm')}">Return times</div>
+            </div>
+        </div>
+
+        <div class="subsection" th:if="${selectedHotelBooking != null}">
+            <h3>Accommodation</h3>
+            <div class="flow-item">
+                <div class="flow-title" th:text="${selectedHotelBooking.hotelName}">Hotel</div>
+                <div th:text="${selectedHotelBooking.location}">Location</div>
+                <div th:text="${selectedHotelBooking.checkInDate + ' to ' + selectedHotelBooking.checkOutDate}">Stay dates</div>
+                <div th:text="'$' + ${selectedHotelBooking.pricePerNight} + ' per night'">Price</div>
+            </div>
+        </div>
+
+        <div class="subsection" th:if="${hasActivities}">
+            <h3>Activities</h3>
+            <div class="flow-list">
+                <div class="flow-item" th:each="activity : ${sortedActivities}">
+                    <div class="flow-meta">
+                        <span th:text="${activity.date}">Date</span>
+                        at
+                        <span th:text="${activity.time}">Time</span>
+                    </div>
+                    <div class="flow-title" th:text="${activity.activityName}">Activity</div>
+                    <div th:text="${activity.location}">Location</div>
+                    <div th:if="${activity.description != null and !activity.description.isBlank()}" th:text="${activity.description}">Description</div>
+                    <div style="margin-top:8px;">
+                        <form th:action="@{'/activities/' + ${activity.id} + '/move-up'}" method="post" style="display:inline;">
+                            <input type="hidden" name="tripId" th:value="${trip.id}">
+                            <input type="hidden" name="view" value="summary">
+                            <button type="submit">Move Up</button>
+                        </form>
+                        <form th:action="@{'/activities/' + ${activity.id} + '/move-down'}" method="post" style="display:inline;">
+                            <input type="hidden" name="tripId" th:value="${trip.id}">
+                            <input type="hidden" name="view" value="summary">
+                            <button type="submit">Move Down</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

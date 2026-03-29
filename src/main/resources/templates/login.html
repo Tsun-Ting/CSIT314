@@ -4,7 +4,8 @@
     <title>Login</title>
     <meta charset="UTF-8">
     <style>
-        body { font-family: Arial, sans-serif; max-width: 520px; margin: 0 auto; padding: 32px; background: #f7f7f7; color: #222; }
+        body { font-family: Arial, sans-serif; max-width: 980px; margin: 0 auto; padding: 32px; background: #f7f7f7; color: #222; }
+        .layout { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 16px; }
         .card { background: #fff; border: 1px solid #dcdcdc; border-radius: 8px; padding: 20px; }
         form div { margin-bottom: 12px; }
         label { display: block; margin-bottom: 4px; font-weight: 600; }
@@ -13,27 +14,53 @@
         .links a { margin-right: 12px; }
         .message { color: #0a5c2d; }
         .error { color: #a12622; }
+        .trip-row { padding: 12px 0; border-top: 1px solid #ececec; }
+        .trip-row:first-of-type { border-top: none; }
+        .small-link { display: inline-block; margin-right: 10px; }
+        @media (max-width: 760px) {
+            .layout { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
-<div class="card">
-    <h1>Login</h1>
-    <p class="links"><a href="/">Home</a> <a href="/register">Register</a></p>
-    <p>Demo login: `demo@travelapp.com` / `password`</p>
-    <p class="message" th:if="${param.registered}">Registration complete. You can sign in now.</p>
-    <p class="message" th:if="${param.logout}">You have been logged out.</p>
-    <p class="error" th:if="${param.error}">Login failed. Please check your email and password.</p>
-    <form method="post" action="/login">
-        <div>
-            <label for="username">Email</label>
-            <input id="username" name="username" type="email" required>
+<div class="layout">
+    <div class="card">
+        <h1>Travel Booking and Itinerary App</h1>
+        <p class="links"><a href="/register">Register</a> <a href="/shared-itinerary">Shared Itinerary</a></p>
+        <p>Sign in to manage trips, bookings, recommendations, budget, and sharing.</p>
+        <p>Demo login: <strong>demo@travelapp.com</strong> / <strong>password</strong></p>
+        <p class="message" th:if="${param.registered}">Registration complete. You can sign in now.</p>
+        <p class="message" th:if="${param.logout}">You have been logged out.</p>
+        <p class="error" th:if="${param.error}">Login failed. Please check your email and password.</p>
+        <form method="post" action="/login">
+            <div>
+                <label for="username">Email</label>
+                <input id="username" name="username" type="email" required>
+            </div>
+            <div>
+                <label for="password">Password</label>
+                <input id="password" name="password" type="password" required>
+            </div>
+            <button type="submit">Login</button>
+        </form>
+    </div>
+
+    <div class="card">
+        <h2>Public Shared Itineraries</h2>
+        <p>Guests can open a shared itinerary or itinerary summary without logging in.</p>
+        <div th:if="${#lists.isEmpty(sharedItineraries)}">
+            <p>No shared itineraries yet.</p>
         </div>
-        <div>
-            <label for="password">Password</label>
-            <input id="password" name="password" type="password" required>
+        <div th:each="share : ${sharedItineraries}" class="trip-row">
+            <h3 th:text="${share.trip.tripName}">Trip Name</h3>
+            <p>Destination: <span th:text="${share.trip.destination}">Destination</span></p>
+            <p>Token: <strong th:text="${share.shareToken}">token</strong></p>
+            <p>
+                <a class="small-link" th:href="@{'/shared-itinerary/' + ${share.shareToken}}">Open Shared Itinerary</a>
+                <a class="small-link" th:href="@{'/shared-itinerary/' + ${share.shareToken} + '/flow'}">Open Itinerary Summary</a>
+            </p>
         </div>
-        <button type="submit">Login</button>
-    </form>
+    </div>
 </div>
 </body>
 </html>

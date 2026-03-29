@@ -13,8 +13,10 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 @Service
 public class RecommendationService {
@@ -23,15 +25,18 @@ public class RecommendationService {
     private final TripRepository tripRepository;
     private final ActivityService activityService;
     private final NotificationService notificationService;
+    private final BudgetService budgetService;
 
     public RecommendationService(RecommendationRepository recommendationRepository,
                                  TripRepository tripRepository,
                                  ActivityService activityService,
-                                 NotificationService notificationService) {
+                                 NotificationService notificationService,
+                                 BudgetService budgetService) {
         this.recommendationRepository = recommendationRepository;
         this.tripRepository = tripRepository;
         this.activityService = activityService;
         this.notificationService = notificationService;
+        this.budgetService = budgetService;
     }
 
     @PostConstruct
@@ -78,6 +83,16 @@ public class RecommendationService {
         if (!added) {
             return;
         }
+        if (recommendation.getEstimatedCost() != null && recommendation.getEstimatedCost() > 0) {
+            budgetService.addAutomaticExpenseToTrip(
+                    trip.getId(),
+                    ownerEmail,
+                    "Attractions",
+                    recommendation.getEstimatedCost(),
+                    trip.getStartDate() != null ? trip.getStartDate() : LocalDate.now(),
+                    "Attraction booking: " + recommendation.getName()
+            );
+        }
         notificationService.createNotification(
                 trip,
                 "RECOMMENDATION",
@@ -106,6 +121,25 @@ public class RecommendationService {
         }
     }
 
+    @Transactional
+    public void cleanupDuplicateRecommendationsForTrip(Long tripId, String ownerEmail) {
+        Trip trip = tripRepository.findByIdAndUserEmail(tripId, ownerEmail)
+                .orElseThrow(() -> new IllegalArgumentException("Trip not found for this user"));
+
+        List<Recommendation> recommendations = recommendationRepository.findByTripId(tripId);
+        if (recommendations.isEmpty()) {
+            return;
+        }
+
+        Set<String> seenKeys = new HashSet<>();
+        for (Recommendation recommendation : recommendations) {
+            String key = recommendationKey(recommendation);
+            if (!seenKeys.add(key)) {
+                recommendationRepository.delete(recommendation);
+            }
+        }
+    }
+
     @Transactional(readOnly = true)
     public List<Recommendation> getPersonalizedRecommendationsForTrip(Long tripId, String ownerEmail) {
         Trip trip = tripRepository.findByIdAndUserEmail(tripId, ownerEmail)
@@ -129,16 +163,34 @@ public class RecommendationService {
             recommendations.add(new Recommendation("Food", "Tsukiji Outer Market", "Tokyo", "Seafood and local food experience.", 4.6, "food", 35.0));
             recommendations.add(new Recommendation("Experience", "Shibuya Crossing", "Shibuya", "Famous city crossing and nightlife area.", 4.5, "city", 0.0));
             recommendations.add(new Recommendation("Experience", "teamLab Planets", "Toyosu", "Immersive digital art museum.", 4.7, "art", 45.0));
+            recommendations.add(new Recommendation("Attraction", "Tokyo Skytree", "Sumida", "Observation tower with panoramic views of the city.", 4.7, "city", 30.0));
+            recommendations.add(new Recommendation("Park", "Ueno Park", "Ueno", "Relaxed park area with museums and seasonal flowers.", 4.5, "nature", 0.0));
+            recommendations.add(new Recommendation("Shopping", "Harajuku Takeshita Street", "Harajuku", "Youth fashion street with snacks and shopping.", 4.4, "shopping", 15.0));
+            recommendations.add(new Recommendation("Food", "Omoide Yokocho", "Shinjuku", "Narrow alley packed with yakitori stalls and local dining.", 4.5, "food", 25.0));
+            recommendations.add(new Recommendation("Experience", "Meiji Shrine", "Shibuya", "Peaceful shrine walk surrounded by forest in central Tokyo.", 4.7, "culture", 0.0));
+            recommendations.add(new Recommendation("Attraction", "Tokyo DisneySea", "Urayasu", "Full-day themed park popular with couples and families.", 4.8, "family", 85.0));
         } else if (normalizedDestination.contains("osaka")) {
             recommendations.add(new Recommendation("Food", "Dotonbori Street Food", "Osaka", "Popular district for takoyaki, okonomiyaki, and nightlife.", 4.8, "food", 25.0));
             recommendations.add(new Recommendation("Attraction", "Osaka Castle", "Osaka", "Historic castle grounds and museum experience.", 4.7, "culture", 18.0));
             recommendations.add(new Recommendation("Experience", "Umeda Sky Building", "Osaka", "Observation deck with skyline views.", 4.5, "city", 20.0));
             recommendations.add(new Recommendation("Experience", "Shinsekai Walk", "Osaka", "Retro entertainment district with street food and local color.", 4.4, "city", 15.0));
+            recommendations.add(new Recommendation("Attraction", "Universal Studios Japan", "Osaka Bay", "Theme park with movie attractions and rides.", 4.8, "family", 90.0));
+            recommendations.add(new Recommendation("Market", "Kuromon Ichiba Market", "Namba", "Food market known for fresh seafood and grilled snacks.", 4.6, "food", 20.0));
+            recommendations.add(new Recommendation("Experience", "Osaka Aquarium Kaiyukan", "Tempozan", "Large aquarium and harbour-side complex.", 4.7, "family", 32.0));
+            recommendations.add(new Recommendation("Shopping", "Shinsaibashi Shopping Arcade", "Shinsaibashi", "Long covered street with fashion, souvenirs, and cafes.", 4.4, "shopping", 20.0));
+            recommendations.add(new Recommendation("Attraction", "Sumiyoshi Taisha", "Osaka", "Historic shrine with iconic bridge and peaceful grounds.", 4.5, "culture", 5.0));
+            recommendations.add(new Recommendation("Experience", "Nakanoshima Riverside Walk", "Nakanoshima", "Easy evening walk with city lights and river views.", 4.3, "nature", 0.0));
         } else if (normalizedDestination.contains("hong kong") || normalizedDestination.contains("hongkong")) {
             recommendations.add(new Recommendation("Experience", "Star Ferry", "Victoria Harbour", "Classic harbour crossing with skyline views.", 4.8, "city", 5.0));
             recommendations.add(new Recommendation("Attraction", "Ocean Park", "Hong Kong Island", "Marine life, rides, and family-friendly attractions.", 4.6, "family", 60.0));
             recommendations.add(new Recommendation("Attraction", "Victoria Peak", "Hong Kong Island", "Famous city viewpoint and tram experience.", 4.7, "city", 20.0));
             recommendations.add(new Recommendation("Food", "Temple Street Night Market", "Kowloon", "Street food and night market shopping experience.", 4.5, "food", 20.0));
+            recommendations.add(new Recommendation("Attraction", "Hong Kong Disneyland", "Lantau Island", "Theme park with rides, shows, and character experiences.", 4.7, "family", 80.0));
+            recommendations.add(new Recommendation("Experience", "Ngong Ping 360 Cable Car", "Lantau Island", "Scenic cable car ride to the Big Buddha area.", 4.6, "nature", 35.0));
+            recommendations.add(new Recommendation("Attraction", "Big Buddha", "Lantau Island", "Large outdoor Buddha statue with monastery grounds nearby.", 4.7, "culture", 10.0));
+            recommendations.add(new Recommendation("Shopping", "Ladies Market", "Mong Kok", "Busy open-air market for fashion, gifts, and street snacks.", 4.3, "shopping", 15.0));
+            recommendations.add(new Recommendation("Food", "Tsim Sha Tsui Harbourfront", "Tsim Sha Tsui", "Waterfront walk with food stops and skyline views.", 4.5, "food", 18.0));
+            recommendations.add(new Recommendation("Experience", "Avenue of Stars", "Tsim Sha Tsui", "Harbour promenade ideal for an evening city walk.", 4.4, "city", 0.0));
         } else if (normalizedDestination.contains("japan")) {
             recommendations.add(new Recommendation("Attraction", "Japan Highlights", destination, "Popular sightseeing and culture picks for a Japan trip.", 4.5, "culture", 28.0));
             recommendations.add(new Recommendation("Food", "Japan Food Picks", destination, "A mix of local dining and food street recommendations.", 4.4, "food", 30.0));
@@ -214,5 +266,11 @@ public class RecommendationService {
 
     private String safeLower(String value) {
         return value == null ? "" : value.toLowerCase(Locale.ROOT);
+    }
+
+    private String recommendationKey(Recommendation recommendation) {
+        return safeLower(recommendation.getName()) + "|"
+                + safeLower(recommendation.getLocation()) + "|"
+                + safeLower(recommendation.getType());
     }
 }

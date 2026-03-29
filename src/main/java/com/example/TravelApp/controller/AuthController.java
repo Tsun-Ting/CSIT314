@@ -1,5 +1,6 @@
 package com.example.TravelApp.controller;
 
+import com.example.TravelApp.service.SharedItineraryService;
 import com.example.TravelApp.service.UserService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -11,13 +12,16 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class AuthController {
 
     private final UserService userService;
+    private final SharedItineraryService sharedItineraryService;
 
-    public AuthController(UserService userService) {
+    public AuthController(UserService userService, SharedItineraryService sharedItineraryService) {
         this.userService = userService;
+        this.sharedItineraryService = sharedItineraryService;
     }
 
     @GetMapping("/login")
-    public String loginPage() {
+    public String loginPage(Model model) {
+        model.addAttribute("sharedItineraries", sharedItineraryService.getAllSharedItineraries());
         return "login";
     }
 

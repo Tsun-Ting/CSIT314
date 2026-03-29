@@ -49,6 +49,48 @@
             border: none;
             border-radius: 4px;
         }
+        .budget-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .budget-card {
+            border: 1px solid #dcdcdc;
+            border-radius: 8px;
+            padding: 12px;
+            background: #fafafa;
+        }
+        .budget-label {
+            display: block;
+            font-size: 12px;
+            text-transform: uppercase;
+            color: #666;
+            margin-bottom: 4px;
+        }
+        .budget-value {
+            font-size: 22px;
+            font-weight: 700;
+        }
+        .budget-bar {
+            width: 100%;
+            height: 14px;
+            border-radius: 999px;
+            background: #e7e7e7;
+            overflow: hidden;
+            margin: 10px 0 6px;
+        }
+        .budget-fill {
+            height: 100%;
+            background: #3b82f6;
+        }
+        .budget-fill.over {
+            background: #b43c3c;
+        }
+        .warning-text {
+            color: #b43c3c;
+            font-weight: 600;
+        }
         ul {
             padding-left: 20px;
         }
@@ -62,6 +104,7 @@
 <div class="nav">
     <a href="/">Home</a>
     <a href="/trips">Travel Plans</a>
+    <a th:href="@{'/trips/' + ${trip.id} + '/flow'}">Itinerary Summary</a>
     <a href="/profile">Profile</a>
     <a href="/shared-itinerary">Share Trips</a>
     <form th:action="@{'/trips/' + ${trip.id} + '/delete'}" method="post">
@@ -98,6 +141,7 @@
 
 <div class="section">
     <h2>Share This Trip</h2>
+    <p>Anyone with the shared link can open the itinerary, even without logging in.</p>
     <form action="/shared-itinerary" method="post">
         <input type="hidden" name="tripId" th:value="${trip.id}">
         <button type="submit">Create Trip Share Link</button>
@@ -107,6 +151,8 @@
         <ul>
             <li th:each="share : ${sharedItineraries}">
                 <a th:href="@{'/shared-itinerary/' + ${share.shareToken}}">Open shared trip view</a>
+                -
+                <span th:text="${'/shared-itinerary/' + share.shareToken}">Public link</span>
                 -
                 <span th:text="${share.accessLevel}">VIEW</span>
                 -
@@ -130,7 +176,7 @@
         </div>
         <div>
             <label>Date</label>
-            <input name="date" type="date" required>
+            <input name="date" type="date" th:min="${trip.startDate}" th:max="${trip.endDate}" th:value="${trip.startDate}" required>
         </div>
         <div>
             <label>Time</label>
@@ -143,10 +189,10 @@
         <button type="submit">Add to Itinerary</button>
     </form>
 
-    <div th:if="${trip.itinerary != null and !#lists.isEmpty(trip.itinerary.activities)}">
+    <div th:if="${!#lists.isEmpty(orderedActivities)}">
         <h2>Planned Activities</h2>
         <ul>
-            <li th:each="activity : ${trip.itinerary.activities}">
+            <li th:each="activity : ${orderedActivities}">
                 <span th:text="${activity.activityName}"></span>
                 -
                 <span th:text="${activity.date}"></span>
@@ -155,6 +201,10 @@
                 (
                 <span th:text="${activity.location}"></span>
                 )
+                <form th:action="@{'/activities/' + ${activity.id} + '/delete'}" method="post" style="display:inline;">
+                    <input type="hidden" name="tripId" th:value="${trip.id}">
+                    <button type="submit">Cancel Activity</button>
+                </form>
             </li>
         </ul>
     </div>
@@ -162,34 +212,46 @@
 
 <div class="section">
     <h2>Travel Budget</h2>
-    <p>Spent: $<span th:text="${trip.budget != null ? trip.budget.spentAmount : 0.0}"></span></p>
-    <p>Remaining: $<span th:text="${trip.budget != null ? trip.budget.remainingAmount : trip.totalBudget}"></span></p>
+    <div class="budget-grid">
+        <div class="budget-card">
+            <span class="budget-label">Total Budget</span>
+            <span class="budget-value">$<span th:text="${trip.budget != null ? trip.budget.totalBudget : trip.totalBudget}">0.0</span></span>
+        </div>
+        <div class="budget-card">
+            <span class="budget-label">Spent</span>
+            <span class="budget-value">$<span th:text="${displaySpentAmount}">0.0</span></span>
+        </div>
+        <div class="budget-card">
+            <span class="budget-label">Remaining</span>
+            <span class="budget-value">$<span th:text="${displayRemainingAmount}">0.0</span></span>
+        </div>
+    </div>
 
-    <form action="/expenses" method="post">
-        <input type="hidden" name="tripId" th:value="${trip.id}">
-        <div>
-            <label>Category</label>
-            <input name="category" type="text" required>
-        </div>
-        <div>
-            <label>Amount</label>
-            <input name="amount" type="number" step="0.01" min="0" required>
-        </div>
-        <div>
-            <label>Date</label>
-            <input name="date" type="date" required>
-        </div>
-        <div>
-            <label>Description</label>
-            <input name="description" type="text" required>
-        </div>
-        <button type="submit">Add Travel Expense</button>
-    </form>
+    <div class="budget-bar">
+        <div class="budget-fill" th:classappend="${overBudget} ? ' over' : ''" th:style="'width:' + ${budgetSpentPercentage} + '%'"></div>
+    </div>
+    <p>
+        Budget used:
+        <strong th:text="${#numbers.formatDecimal(budgetSpentPercentage, 1, 1)} + '%'">0.0%</strong>
+    </p>
+    <p th:if="${overBudget}" class="warning-text">This trip is currently over budget.</p>
+    <p>Budget updates automatically when you book flights, book accommodation, or save paid attractions to the itinerary.</p>
 
-    <div th:if="${trip.budget != null and !#lists.isEmpty(trip.budget.expenses)}">
+    <div th:if="${!#lists.isEmpty(categorySpend)}">
+        <h3>Spending by Category</h3>
+        <ul>
+            <li th:each="entry : ${categorySpend}">
+                <span th:text="${entry.category}">Category</span>
+                -
+                $<span th:text="${entry.amount}">0.0</span>
+            </li>
+        </ul>
+    </div>
+
+    <div th:if="${!#lists.isEmpty(displayExpenses)}">
         <h2>Saved Expenses</h2>
         <ul>
-            <li th:each="expense : ${trip.budget.expenses}">
+            <li th:each="expense : ${displayExpenses}">
                 <span th:text="${expense.category}"></span>
                 -
                 $<span th:text="${expense.amount}"></span>
@@ -207,7 +269,38 @@
     <h2>Book Flights and Accommodation</h2>
     <p>Available booking options are matched to this trip's destination and dates.</p>
 
-    <div th:if="${!#lists.isEmpty(flightOptions)}">
+    <div th:if="${selectedFlightBooking != null}">
+        <h3>Booked Flight</h3>
+        <p>
+            <strong th:text="${selectedFlightBooking.airline + ' ' + selectedFlightBooking.flightNumber}">Flight</strong>
+            -
+            <span th:text="${selectedFlightBooking.origin}">Origin</span>
+            to
+            <span th:text="${selectedFlightBooking.destination}">Destination</span>
+        </p>
+        <p>
+            Outbound:
+            <span th:text="${#temporals.format(selectedFlightBooking.departureDate, 'yyyy-MM-dd HH:mm')}">Departure</span>
+            to
+            <span th:text="${#temporals.format(selectedFlightBooking.arrivalDate, 'yyyy-MM-dd HH:mm')}">Arrival</span>
+        </p>
+        <p>
+            Return:
+            <span th:text="${#temporals.format(selectedFlightBooking.returnDepartureDate, 'yyyy-MM-dd HH:mm')}">Return Departure</span>
+            to
+            <span th:text="${#temporals.format(selectedFlightBooking.returnArrivalDate, 'yyyy-MM-dd HH:mm')}">Return Arrival</span>
+        </p>
+        <p>
+            Total Price: $
+            <span th:text="${selectedFlightBooking.price}">0.0</span>
+        </p>
+        <form th:action="@{'/bookings/' + ${selectedFlightBooking.id} + '/cancel'}" method="post">
+            <input type="hidden" name="tripId" th:value="${trip.id}">
+            <button type="submit">Cancel Flight</button>
+        </form>
+    </div>
+
+    <div th:if="${selectedFlightBooking == null and !#lists.isEmpty(flightOptions)}">
         <h3>Flight Options</h3>
         <ul>
             <li th:each="flight : ${flightOptions}">
@@ -217,9 +310,15 @@
                 to
                 <span th:text="${flight.destination}">Destination</span>
                 -
+                Outbound:
                 <span th:text="${#temporals.format(flight.departureDate, 'yyyy-MM-dd HH:mm')}">Departure</span>
                 to
                 <span th:text="${#temporals.format(flight.arrivalDate, 'yyyy-MM-dd HH:mm')}">Arrival</span>
+                -
+                Return:
+                <span th:text="${#temporals.format(flight.returnDepartureDate, 'yyyy-MM-dd HH:mm')}">Return Departure</span>
+                to
+                <span th:text="${#temporals.format(flight.returnArrivalDate, 'yyyy-MM-dd HH:mm')}">Return Arrival</span>
                 -
                 $<span th:text="${flight.price}">0.0</span>
                 <form action="/bookings/demo" method="post">
@@ -231,11 +330,34 @@
             </li>
         </ul>
     </div>
-    <div th:if="${#lists.isEmpty(flightOptions)}">
+    <div th:if="${selectedFlightBooking == null and #lists.isEmpty(flightOptions)}">
         <p>No flight options found for this destination yet.</p>
     </div>
 
-    <div th:if="${!#lists.isEmpty(hotelOptions)}">
+    <div th:if="${selectedHotelBooking != null}">
+        <h3>Booked Accommodation</h3>
+        <p>
+            <strong th:text="${selectedHotelBooking.hotelName}">Hotel</strong>
+            -
+            <span th:text="${selectedHotelBooking.location}">Location</span>
+        </p>
+        <p>
+            Stay:
+            <span th:text="${selectedHotelBooking.checkInDate}">Check-in</span>
+            to
+            <span th:text="${selectedHotelBooking.checkOutDate}">Check-out</span>
+        </p>
+        <p>
+            Price per night: $
+            <span th:text="${selectedHotelBooking.pricePerNight}">0.0</span>
+        </p>
+        <form th:action="@{'/bookings/' + ${selectedHotelBooking.id} + '/cancel'}" method="post">
+            <input type="hidden" name="tripId" th:value="${trip.id}">
+            <button type="submit">Cancel Stay</button>
+        </form>
+    </div>
+
+    <div th:if="${selectedHotelBooking == null and !#lists.isEmpty(hotelOptions)}">
         <h3>Accommodation Options</h3>
         <ul>
             <li th:each="hotel : ${hotelOptions}">
@@ -260,7 +382,7 @@
             </li>
         </ul>
     </div>
-    <div th:if="${#lists.isEmpty(hotelOptions)}">
+    <div th:if="${selectedHotelBooking == null and #lists.isEmpty(hotelOptions)}">
         <p>No accommodation options found for this destination yet.</p>
     </div>
 
@@ -304,5 +426,18 @@
         </li>
     </ul>
 </div>
+<script>
+    const activityDateInput = document.querySelector('input[name="date"]');
+    if (activityDateInput) {
+        const minDate = activityDateInput.getAttribute("min");
+        const maxDate = activityDateInput.getAttribute("max");
+        if (activityDateInput.value && minDate && activityDateInput.value < minDate) {
+            activityDateInput.value = minDate;
+        }
+        if (activityDateInput.value && maxDate && activityDateInput.value > maxDate) {
+            activityDateInput.value = maxDate;
+        }
+    }
+</script>
 </body>
 </html>

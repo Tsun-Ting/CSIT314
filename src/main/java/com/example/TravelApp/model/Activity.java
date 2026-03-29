@@ -23,6 +23,9 @@ public class Activity {
 
     private String location;
 
+    @Column(name = "display_order")
+    private Integer displayOrder;
+
     @ManyToOne
     @JoinColumn(name = "itinerary_id")
     private Itinerary itinerary;
@@ -80,6 +83,14 @@ public class Activity {
 
     public void setLocation(String location) {
         this.location = location;
+    }
+
+    public Integer getDisplayOrder() {
+        return displayOrder;
+    }
+
+    public void setDisplayOrder(Integer displayOrder) {
+        this.displayOrder = displayOrder;
     }
 
     public Itinerary getItinerary() {

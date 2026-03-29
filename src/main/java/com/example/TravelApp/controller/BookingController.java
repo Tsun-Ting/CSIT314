@@ -37,4 +37,12 @@ public class BookingController {
         bookingService.createBookingFromOption(tripId, principal.getName(), bookingType, optionId);
         return "redirect:/trips/" + tripId;
     }
+
+    @PostMapping("/bookings/{bookingId}/cancel")
+    public String cancelBooking(@org.springframework.web.bind.annotation.PathVariable Long bookingId,
+                                @RequestParam Long tripId,
+                                Principal principal) {
+        bookingService.cancelBooking(tripId, bookingId, principal.getName());
+        return "redirect:/trips/" + tripId;
+    }
 }

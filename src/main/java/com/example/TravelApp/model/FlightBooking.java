@@ -13,6 +13,8 @@ public class FlightBooking extends Bookings {
     private String destination;
     private LocalDateTime departureDate;
     private LocalDateTime arrivalDate;
+    private LocalDateTime returnDepartureDate;
+    private LocalDateTime returnArrivalDate;
     private Double price;
     private String airline;
     private String flightNumber;
@@ -24,6 +26,8 @@ public class FlightBooking extends Bookings {
                          String destination,
                          LocalDateTime departureDate,
                          LocalDateTime arrivalDate,
+                         LocalDateTime returnDepartureDate,
+                         LocalDateTime returnArrivalDate,
                          Double price,
                          String airline,
                          String flightNumber) {
@@ -31,6 +35,8 @@ public class FlightBooking extends Bookings {
         this.destination = destination;
         this.departureDate = departureDate;
         this.arrivalDate = arrivalDate;
+        this.returnDepartureDate = returnDepartureDate;
+        this.returnArrivalDate = returnArrivalDate;
         this.price = price;
         this.airline = airline;
         this.flightNumber = flightNumber;
@@ -68,6 +74,22 @@ public class FlightBooking extends Bookings {
         this.arrivalDate = arrivalDate;
     }
 
+    public LocalDateTime getReturnDepartureDate() {
+        return returnDepartureDate;
+    }
+
+    public void setReturnDepartureDate(LocalDateTime returnDepartureDate) {
+        this.returnDepartureDate = returnDepartureDate;
+    }
+
+    public LocalDateTime getReturnArrivalDate() {
+        return returnArrivalDate;
+    }
+
+    public void setReturnArrivalDate(LocalDateTime returnArrivalDate) {
+        this.returnArrivalDate = returnArrivalDate;
+    }
+
     public Double getPrice() {
         return price;
     }
@@ -94,6 +116,12 @@ public class FlightBooking extends Bookings {
 
     @Override
     public String getBookingSummary() {
-        return "Flight " + flightNumber + " with " + airline + " from " + origin + " to " + destination + " ($" + price + ")";
+        String outbound = departureDate != null && arrivalDate != null
+                ? "Outbound: " + departureDate + " to " + arrivalDate
+                : "Outbound time TBD";
+        String inbound = returnDepartureDate != null && returnArrivalDate != null
+                ? " Return: " + returnDepartureDate + " to " + returnArrivalDate
+                : "";
+        return "Flight " + flightNumber + " with " + airline + " from " + origin + " to " + destination + " (" + outbound + "." + inbound + ") $" + price;
     }
 }

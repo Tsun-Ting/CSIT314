@@ -57,6 +57,24 @@
     <p>Demo login: <strong>demo@travelapp.com</strong> / <strong>password</strong></p>
 </div>
 
+<div class="card">
+    <h2>Public Shared Itineraries</h2>
+    <p>These shared trip links can be opened without logging in.</p>
+    <div th:if="${#lists.isEmpty(sharedItineraries)}">
+        <p>No shared itineraries yet.</p>
+    </div>
+    <div th:each="share : ${sharedItineraries}" class="trip-row">
+        <h3 th:text="${share.trip.tripName}">Trip Name</h3>
+        <p>Destination: <span th:text="${share.trip.destination}">Destination</span></p>
+        <p>Token: <strong th:text="${share.shareToken}">token</strong></p>
+        <p>
+            <a th:href="@{'/shared-itinerary/' + ${share.shareToken}}">Open Shared Itinerary</a>
+            |
+            <a th:href="@{'/shared-itinerary/' + ${share.shareToken} + '/flow'}">Open Itinerary Summary</a>
+        </p>
+    </div>
+</div>
+
 <div class="card" th:if="${authenticated}">
     <h2>Your Travel Plans</h2>
     <div th:if="${#lists.isEmpty(trips)}">
