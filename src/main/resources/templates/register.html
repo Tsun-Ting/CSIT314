@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Register</title>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 700px; margin: 0 auto; padding: 32px; background: #f7f7f7; color: #222; }
+        .card { background: #fff; border: 1px solid #dcdcdc; border-radius: 8px; padding: 20px; }
+        form div { margin-bottom: 12px; }
+        label { display: block; margin-bottom: 4px; font-weight: 600; }
+        input, button { padding: 8px; font: inherit; width: 100%; box-sizing: border-box; }
+        button { cursor: pointer; width: auto; }
+        .links a { margin-right: 12px; }
+        .error { color: #a12622; }
+    </style>
+</head>
+<body>
+<div class="card">
+    <h1>Register</h1>
+    <p class="links"><a href="/">Home</a> <a href="/login">Login</a></p>
+    <p class="error" th:if="${errorMessage}" th:text="${errorMessage}">Error message</p>
+    <form method="post" action="/register">
+        <div>
+            <label for="name">Name</label>
+            <input id="name" name="name" type="text" required>
+        </div>
+        <div>
+            <label for="email">Email</label>
+            <input id="email" name="email" type="email" required>
+        </div>
+        <div>
+            <label for="password">Password</label>
+            <input id="password" name="password" type="password" required>
+        </div>
+        <div>
+            <label for="personalInfo">Personal Info</label>
+            <input id="personalInfo" name="personalInfo" type="text">
+        </div>
+        <div>
+            <label for="travelPreferences">Travel Preferences</label>
+            <input id="travelPreferences" name="travelPreferences" type="text">
+        </div>
+        <div>
+            <label for="budgetRange">Budget Range</label>
+            <input id="budgetRange" name="budgetRange" type="number" step="0.01" min="0" value="0">
+        </div>
+        <div>
+            <label for="interests">Interests</label>
+            <input id="interests" name="interests" type="text">
+        </div>
+        <button type="submit">Create Account</button>
+    </form>
+</div>
+</body>
+</html>

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Travel Booking and Itinerary App</title>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 24px;
+            background: #f7f7f7;
+            color: #222;
+        }
+        .nav, .card, .panel {
+            background: #fff;
+            border: 1px solid #dcdcdc;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        .nav a {
+            margin-right: 12px;
+        }
+        .trip-row {
+            padding: 12px 0;
+            border-top: 1px solid #ececec;
+        }
+        .trip-row:first-of-type {
+            border-top: none;
+        }
+        ul {
+            padding-left: 20px;
+        }
+    </style>
+</head>
+<body>
+<h1>Travel Booking and Itinerary App</h1>
+<div class="nav">
+    <span th:if="${authenticated}">
+        <a href="/trips">Trips</a>
+        <a href="/profile">Profile</a>
+        <form method="post" action="/logout" style="display:inline;">
+            <button type="submit">Logout</button>
+        </form>
+    </span>
+    <span th:unless="${authenticated}">
+        <a href="/login">Login</a>
+        <a href="/register">Register</a>
+    </span>
+    <a href="/shared-itinerary">Shared Itinerary</a>
+</div>
+
+<div class="card" th:unless="${authenticated}">
+    <h2>Welcome</h2>
+    <p>Plan trips, manage flights and stays, discover attractions, and share travel plans with friends.</p>
+    <p>Demo login: <strong>demo@travelapp.com</strong> / <strong>password</strong></p>
+</div>
+
+<div class="card" th:if="${authenticated}">
+    <h2>Your Travel Plans</h2>
+    <div th:if="${#lists.isEmpty(trips)}">
+        <p>No travel plans yet.</p>
+    </div>
+
+    <div th:each="trip : ${trips}" class="trip-row">
+        <h3 th:text="${trip.tripName}">Trip Name</h3>
+        <p>Destination: <span th:text="${trip.destination}">Destination</span></p>
+        <p><a th:href="@{'/trips/' + ${trip.id}}">Open Travel Plan</a></p>
+    </div>
+</div>
+
+<div class="panel" th:if="${authenticated}">
+    <h2>Recent Notifications</h2>
+    <div th:if="${#lists.isEmpty(notifications)}">
+        <p>No notifications yet.</p>
+    </div>
+
+    <ul th:if="${!#lists.isEmpty(notifications)}">
+        <li th:each="notification : ${notifications}">
+            <strong th:text="${notification.type}">TYPE</strong>
+            -
+            <span th:text="${notification.message}">Message</span>
+            <span th:if="${notification.trip != null}">
+                |
+                <a th:href="@{'/trips/' + ${notification.trip.id}}">Open trip</a>
+            </span>
+        </li>
+    </ul>
+</div>
+</body>
+</html>

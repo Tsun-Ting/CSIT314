@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Share Trips</title>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 24px;
+            background: #f7f7f7;
+            color: #222;
+        }
+        .nav, .section {
+            background: #fff;
+            border: 1px solid #dcdcdc;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        .nav a {
+            margin-right: 12px;
+        }
+        .nav form {
+            display: inline;
+        }
+        form div {
+            margin-bottom: 10px;
+        }
+        label {
+            display: block;
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+        input, select, button {
+            padding: 8px;
+            font: inherit;
+        }
+        ul {
+            padding-left: 20px;
+        }
+        li {
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+<h1>Share Trips</h1>
+<div class="nav">
+    <a href="/">Home</a>
+    <a href="/trips" th:if="${authenticated}">Travel Plans</a>
+    <a href="/profile" th:if="${authenticated}">Profile</a>
+    <a href="/login" th:unless="${authenticated}">Login</a>
+    <a href="/register" th:unless="${authenticated}">Register</a>
+    <form method="post" action="/logout" th:if="${authenticated}">
+        <button type="submit">Logout</button>
+    </form>
+</div>
+
+<div class="section">
+    <h2>Share a Travel Plan</h2>
+    <div th:if="${#lists.isEmpty(trips)}">
+        <p>Create a travel plan first.</p>
+    </div>
+
+    <form action="/shared-itinerary" method="post" th:if="${!#lists.isEmpty(trips)}">
+        <div>
+            <label>Travel Plan</label>
+            <select name="tripId" required>
+                <option th:each="trip : ${trips}" th:value="${trip.id}" th:text="${trip.tripName + ' - ' + trip.destination}"></option>
+            </select>
+        </div>
+        <button type="submit">Create Share Link</button>
+    </form>
+</div>
+
+<div class="section">
+    <h2>Trip Share Links</h2>
+    <div th:if="${#lists.isEmpty(sharedItineraries)}">
+        <p>No share links yet.</p>
+    </div>
+
+    <ul th:if="${!#lists.isEmpty(sharedItineraries)}">
+        <li th:each="share : ${sharedItineraries}">
+            <strong th:text="${share.trip.tripName}">Trip name</strong>
+            -
+            <span th:text="${share.trip.destination}">Destination</span>
+            -
+            <a th:href="@{'/trips/' + ${share.trip.id}}">Open travel plan</a>
+            -
+            <a th:href="@{'/shared-itinerary/' + ${share.shareToken}}">Open shared trip view</a>
+            -
+            <span th:text="${share.accessLevel}">VIEW</span>
+        </li>
+    </ul>
+</div>
+</body>
+</html>

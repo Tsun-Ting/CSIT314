@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Shared Trip View</title>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 24px;
+            background: #f7f7f7;
+            color: #222;
+        }
+        .nav, .section {
+            background: #fff;
+            border: 1px solid #dcdcdc;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        .nav a {
+            margin-right: 12px;
+        }
+        .summary p {
+            margin: 6px 0;
+        }
+        ul {
+            padding-left: 20px;
+        }
+    </style>
+</head>
+<body>
+<h1>Shared Trip View</h1>
+<div class="nav">
+    <a href="/">Home</a>
+    <a href="/shared-itinerary">Share Trips</a>
+    <a th:if="${authenticated}" th:href="@{'/trips/' + ${trip.id}}">Travel Plan</a>
+    <a th:unless="${authenticated}" href="/login">Login</a>
+</div>
+
+<div class="section summary">
+    <h2 th:text="${trip.tripName}">Trip Name</h2>
+    <p>Destination: <span th:text="${trip.destination}">Destination</span></p>
+    <p>Dates: <span th:text="${trip.startDate}"></span> to <span th:text="${trip.endDate}"></span></p>
+    <p>Access: <span th:text="${sharedItinerary.accessLevel}">VIEW</span></p>
+    <p>Share Token: <span th:text="${sharedItinerary.shareToken}">token</span></p>
+    <p>Itinerary Summary: <span th:text="${trip.itinerary != null ? trip.itinerary.summary : 'No itinerary yet'}"></span></p>
+</div>
+
+<div class="section" th:if="${trip.itinerary != null and !#lists.isEmpty(trip.itinerary.activities)}">
+    <h2>Activities and Attractions</h2>
+    <ul>
+        <li th:each="activity : ${trip.itinerary.activities}">
+            <strong th:text="${activity.activityName}">Activity</strong>
+            -
+            <span th:text="${activity.date}">Date</span>
+            at
+            <span th:text="${activity.time}">Time</span>
+            (
+            <span th:text="${activity.location}">Location</span>
+            )
+            <div th:text="${activity.description}">Description</div>
+        </li>
+    </ul>
+</div>
+
+<div class="section" th:if="${trip.itinerary == null or #lists.isEmpty(trip.itinerary.activities)}">
+    <p>No activities or attractions have been added to this itinerary yet.</p>
+</div>
+</body>
+</html>

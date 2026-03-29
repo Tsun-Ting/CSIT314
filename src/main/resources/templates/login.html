@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Login</title>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 520px; margin: 0 auto; padding: 32px; background: #f7f7f7; color: #222; }
+        .card { background: #fff; border: 1px solid #dcdcdc; border-radius: 8px; padding: 20px; }
+        form div { margin-bottom: 12px; }
+        label { display: block; margin-bottom: 4px; font-weight: 600; }
+        input, button { padding: 8px; font: inherit; width: 100%; box-sizing: border-box; }
+        button { cursor: pointer; }
+        .links a { margin-right: 12px; }
+        .message { color: #0a5c2d; }
+        .error { color: #a12622; }
+    </style>
+</head>
+<body>
+<div class="card">
+    <h1>Login</h1>
+    <p class="links"><a href="/">Home</a> <a href="/register">Register</a></p>
+    <p>Demo login: `demo@travelapp.com` / `password`</p>
+    <p class="message" th:if="${param.registered}">Registration complete. You can sign in now.</p>
+    <p class="message" th:if="${param.logout}">You have been logged out.</p>
+    <p class="error" th:if="${param.error}">Login failed. Please check your email and password.</p>
+    <form method="post" action="/login">
+        <div>
+            <label for="username">Email</label>
+            <input id="username" name="username" type="email" required>
+        </div>
+        <div>
+            <label for="password">Password</label>
+            <input id="password" name="password" type="password" required>
+        </div>
+        <button type="submit">Login</button>
+    </form>
+</div>
+</body>
+</html>
