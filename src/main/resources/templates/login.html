@@ -3,29 +3,289 @@
 <head>
     <title>Login</title>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: Arial, sans-serif; max-width: 980px; margin: 0 auto; padding: 32px; background: #f7f7f7; color: #222; }
-        .layout { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 16px; }
-        .card { background: #fff; border: 1px solid #dcdcdc; border-radius: 8px; padding: 20px; }
-        form div { margin-bottom: 12px; }
-        label { display: block; margin-bottom: 4px; font-weight: 600; }
-        input, button { padding: 8px; font: inherit; width: 100%; box-sizing: border-box; }
-        button { cursor: pointer; }
-        .links a { margin-right: 12px; }
-        .message { color: #0a5c2d; }
-        .error { color: #a12622; }
-        .trip-row { padding: 12px 0; border-top: 1px solid #ececec; }
-        .trip-row:first-of-type { border-top: none; }
-        .small-link { display: inline-block; margin-right: 10px; }
-        @media (max-width: 760px) {
+        :root {
+            --primary: #2563eb;
+            --accent-blue: #3b82f6;
+            --accent-red: #ef4444;
+            --accent-green: #10b981;
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --border: #e2e8f0;
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+            --radius: 10px;
+            --spacing-md: 1rem;
+            --spacing-lg: 1.5rem;
+            --spacing-xl: 2rem;
+            --spacing-2xl: 2.5rem;
+            --spacing-3xl: 3rem;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: var(--spacing-3xl) var(--spacing-xl);
+            background: linear-gradient(135deg, var(--bg-primary) 0%, #e0f2fe 100%);
+            background-attachment: fixed;
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 0 0 var(--spacing-xl) 0;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent-blue) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        h2 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin: 0 0 var(--spacing-lg) 0;
+        }
+
+        h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 0 0 var(--spacing-md) 0;
+        }
+
+        .nav {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: var(--spacing-lg) var(--spacing-xl);
+            margin-bottom: var(--spacing-2xl);
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-md);
+            align-items: center;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: var(--spacing-xl);
+            z-index: 100;
+        }
+
+        .nav a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            padding: var(--spacing-sm) var(--spacing-lg);
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+
+        .nav a:hover {
+            background: linear-gradient(135deg, var(--accent-blue) 0%, var(--primary) 100%);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: var(--spacing-xl);
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.98);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: var(--spacing-2xl);
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-green) 100%);
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .card p {
+            margin: 0 0 var(--spacing-md) 0;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        form div {
+            margin-bottom: var(--spacing-lg);
+        }
+
+        label {
+            display: block;
+            margin-bottom: var(--spacing-sm);
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        input, select, textarea, button {
+            padding: 12px 16px;
+            font: inherit;
+            width: 100%;
+            border: 2px solid var(--border);
+            border-radius: var(--radius);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            transition: all 0.2s ease;
+            font-size: 1rem;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+        }
+
+        button {
+            cursor: pointer;
+            border: none;
+            background: linear-gradient(135deg, var(--accent-blue) 0%, var(--primary) 100%);
+            color: white;
+            font-weight: 600;
+            padding: 12px 28px;
+            margin-top: var(--spacing-md);
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .links a {
+            color: var(--accent-blue);
+            text-decoration: none;
+            margin-right: var(--spacing-lg);
+            font-weight: 500;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .links a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent-blue), var(--accent-green));
+            transition: width 0.3s ease;
+        }
+
+        .links a:hover::after {
+            width: 100%;
+        }
+
+        .message {
+            color: var(--accent-green);
+            font-weight: 500;
+            margin-bottom: var(--spacing-md);
+            padding: var(--spacing-sm) var(--spacing-md);
+            background: rgba(16, 185, 129, 0.1);
+            border-left: 3px solid var(--accent-green);
+            border-radius: 6px;
+        }
+
+        .error {
+            color: var(--accent-red);
+            font-weight: 500;
+            margin-bottom: var(--spacing-md);
+            padding: var(--spacing-sm) var(--spacing-md);
+            background: rgba(239, 68, 68, 0.1);
+            border-left: 3px solid var(--accent-red);
+            border-radius: 6px;
+        }
+
+        .trip-row {
+            padding: var(--spacing-lg) 0;
+            border-top: 1px solid var(--border);
+            transition: all 0.2s ease;
+        }
+
+        .trip-row:first-of-type {
+            border-top: none;
+        }
+
+        .trip-row:hover {
+            background: rgba(59, 130, 246, 0.03);
+            margin: 0 calc(var(--spacing-md) * -1);
+            padding-left: var(--spacing-md);
+            padding-right: var(--spacing-md);
+            border-radius: var(--radius);
+        }
+
+        .small-link {
+            display: inline-block;
+            margin-right: var(--spacing-md);
+            color: var(--accent-blue);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            padding: var(--spacing-xs) var(--spacing-sm);
+            border-radius: 6px;
+            border: 1px solid transparent;
+        }
+
+        .small-link:hover {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: var(--accent-blue);
+            transform: translateX(4px);
+        }
+
+        .hint {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-top: var(--spacing-sm);
+            font-style: italic;
+        }
+
+        @media (max-width: 768px) {
+            body { padding: var(--spacing-xl) var(--spacing-lg); }
             .layout { grid-template-columns: 1fr; }
+            .nav {
+                flex-direction: column;
+                position: static;
+                align-items: stretch;
+                padding: var(--spacing-md);
+            }
+            .nav a { text-align: center; }
         }
     </style>
 </head>
 <body>
 <div class="layout">
     <div class="card">
-        <h1>Travel Booking and Itinerary App</h1>
+        <h1>Login</h1>
         <p class="links"><a href="/register">Register</a> <a href="/shared-itinerary">Shared Itinerary</a></p>
         <p>Sign in to manage trips, bookings, recommendations, budget, and sharing.</p>
         <p>Demo login: <strong>demo@travelapp.com</strong> / <strong>password</strong></p>
